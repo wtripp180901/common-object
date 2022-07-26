@@ -44,17 +44,23 @@ function AssignKey(user,key,name){
 }
 
 function Validate(objectData){
-	User.findOne({username: objectData.author},'keys',function (err,doc){
-		if(err){
-			return err;
-		}else{
-			if(doc){
-				return crypto.VerifyString(objectData.data,objectData.signature,doc.keys[0].key);
+	return new Promise((resolve,reject) =>{
+		User.findOne({username: objectData.author},'keys',function (err,doc){
+			if(err){
+				console.log(err);
+				reject(err);
 			}else{
-				console.log("No doc found")
+				if(doc){
+					let result = crypto.VerifyString(objectData.data,objectData.signature,doc.keys[0].key);
+					console.log(result);
+					resolve(result);
+				}else{
+					console.log("No doc found")
+					reject("No doc found");
+				}
 			}
-		}
-	})
+		})
+	});
 }
 
 function NewObject(objectData,author,privkey){

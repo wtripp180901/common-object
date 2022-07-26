@@ -5,7 +5,8 @@ module.exports = {VerifyString,SignString};
 function VerifyString(plainText,signature,pubkey){
 	const verifier = crypto.createVerify('RSA-SHA256');
 	verifier.update(JSON.stringify(plainText));
-	return verifier.verify(Buffer.from(pubkey,'utf-8'),Buffer.from(signature,'base64'));
+	let result = verifier.verify(Buffer.from(pubkey,'utf-8'),Buffer.from(signature,'base64'));
+	return result;
 }
 
 function SignString (plainText,keyString) {
