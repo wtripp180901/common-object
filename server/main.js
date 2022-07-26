@@ -6,12 +6,9 @@ app.use(express.json());
 
 const db = require('./dbhandler.js');
 
-const pukey = fs.readFileSync('C:\\Users\\willt\\Desktop\\test keys\\public.pem','utf-8')
-
 app.post('/ValidateRequest',async function(req,res){
-	let stuff = await db.Validate(req.body);
-	console.log(stuff);
-	if(stuff){
+	let result = await db.Validate(req.body);
+	if(result){
 		res.status(200).end('true');
 	}else{
 		res.status(200).end('false')
@@ -19,10 +16,8 @@ app.post('/ValidateRequest',async function(req,res){
 }
 );
 
-const prkey = fs.readFileSync('C:\\Users\\willt\\Desktop\\test keys\\private.pem','utf-8')
-
 app.post('/NewObjectRequest',function(req,res){
-	db.NewObject(req.body.data,req.body.author,prkey);
+	db.NewObject(req.body.data,req.body.author,req.body.key);
 	res.status(200).json({message:'Test'});
 }
 );
