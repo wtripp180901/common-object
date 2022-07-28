@@ -25,7 +25,7 @@ const CommonObject = mongoose.model('Objects',objectSchema);
 const User = mongoose.model('users',userSchema);
 
 function AssignKey(user,key,name){
-	User.findOneAndUpdate({username: user},{$push: {keys: {key: key, name: name, priority: 0}}},function (err,doc){
+	User.findOne({username: user},function (err,doc){
 		if(err){
 			console.log(err);
 		}else{
@@ -37,6 +37,12 @@ function AssignKey(user,key,name){
 				newUser.save()
 				console.log('New user created')
 			}else{
+				let highest = 0;
+				doc.keys.forEach(value => {
+					if(value.priority > highest) highest = value.priority;
+				})
+				doc.keys.push({key: key, name: name, priority: highest+1});
+				doc.save();
 				console.log('New key added')
 			}
 		}
@@ -53,7 +59,7 @@ function Validate(objectData){
 				if(doc){
 					let found = false;
 					let keyObjects = doc.keys;
-					keyObjects.sort((a,b) => {return a.priority - b.priority;})
+					keyObjects.sort((a,b) => {return b.priority - a.priority;})
 					keyObjects.every((currentKey) => {
 						let result = crypto.VerifyString(objectData.data,objectData.signature,currentKey.key);
 						if(result){ 
