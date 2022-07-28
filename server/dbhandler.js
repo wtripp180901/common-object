@@ -25,7 +25,7 @@ const CommonObject = mongoose.model('Objects',objectSchema);
 const User = mongoose.model('users',userSchema);
 
 function AssignKey(user,key,name){
-	User.findOneAndUpdate({username: user},{$push: {keys: key}},function (err,doc){
+	User.findOneAndUpdate({username: user},{$push: {keys: {key: key, name: name, priority: 0}}},function (err,doc){
 		if(err){
 			console.log(err);
 		}else{
@@ -51,9 +51,26 @@ function Validate(objectData){
 				reject(err);
 			}else{
 				if(doc){
-					let result = crypto.VerifyString(objectData.data,objectData.signature,doc.keys[0].key);
-					console.log(result);
-					resolve(result);
+					let found = false;
+					let keyObjects = doc.keys;
+					keyObjects.sort((a,b) => {return a.priority - b.priority;})
+					keyObjects.every((currentKey) => {
+						let result = crypto.VerifyString(objectData.data,objectData.signature,currentKey.key);
+						if(result){ 
+							console.log("Matching key found")
+							resolve(result);
+							found = true;
+							return false;
+						} else {
+							console.log("Key rejected");
+							return true;
+						}
+					});
+					if(!found){
+						console.log("No matching public key for user");
+						reject("No matching public key for user");
+					}
+					
 				}else{
 					console.log("No doc found")
 					reject("No doc found");
