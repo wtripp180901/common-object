@@ -6,12 +6,24 @@ app.use(express.json());
 
 const db = require('./dbhandler.js');
 
+app.post('/NewUserRequest',function(req,res)
+{
+	db.NewUser(req.body.username,req.body.password);
+	res.status(200).end()
+}
+);
+
+app.put('/LoginRequest',function(req,res){
+	db.AuthenticateUser(req.body.username,req.body.password);
+	res.status(200).end();
+});
+
 app.post('/ValidateRequest',async function(req,res){
 	let result = await db.Validate(req.body);
 	if(result){
 		res.status(200).end('true');
 	}else{
-		res.status(200).end('false')
+		res.status(200).end('false');
 	}
 }
 );

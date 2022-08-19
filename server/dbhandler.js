@@ -1,9 +1,10 @@
-module.exports= {NewObject,AssignKey,Validate};
+module.exports= {NewObject,AssignKey,Validate,NewUser,AuthenticateUser};
 
 const mongoose = require('mongoose');
 mongoose.connect('mongodb://localhost:27017/common_object');
 
-const crypto = require('./signaturehandler.js')
+const sigHandler = require('./signaturehandler.js')
+const crypto = require('crypto')
 
 const db = mongoose.connection;
 
@@ -18,11 +19,43 @@ const objectSchema = new mongoose.Schema({
 })*/
 const userSchema = new mongoose.Schema({
 	username: String,
+	password: Object,
 	keys: [Object]
 });
 
 const CommonObject = mongoose.model('Objects',objectSchema);
 const User = mongoose.model('users',userSchema);
+
+function NewUser(user,password){
+	const salt = crypto.randomBytes(16).toString('hex');
+	const iterations = 100000;
+	let saltedPassword = crypto.pbkdf2Sync(password,salt,iterations,64,'sha512').toString('hex');
+	let newUser = new User({
+		username: user,
+		password: {
+			salt: salt,
+			iterations: iterations,
+			password: saltedPassword
+		},
+		keys: []
+	});
+	newUser.save();
+}
+
+function AuthenticateUser(user,password){
+	User.findOne({username: user},function (err,doc){
+		if(err){
+			console.log(err);
+		}else{
+			if(!doc){
+				console.log('User not found');
+			}else{
+				const userAttempt = crypto.pbkdf2Sync(password,doc.password.salt,doc.password.iterations,64,'sha512').toString('hex');
+				console.log(userAttempt === doc.password.password);
+			}
+		}
+	});
+}
 
 function AssignKey(user,key,name){
 	User.findOne({username: user},function (err,doc){
@@ -61,7 +94,7 @@ function Validate(objectData){
 					let keyObjects = doc.keys;
 					keyObjects.sort((a,b) => {return b.priority - a.priority;})
 					keyObjects.every((currentKey) => {
-						let result = crypto.VerifyString(objectData.data,objectData.signature,currentKey.key);
+						let result = sigHandler.VerifyString(objectData.data,objectData.signature,currentKey.key);
 						if(result){ 
 							console.log("Matching key found")
 							resolve(result);
@@ -88,7 +121,7 @@ function Validate(objectData){
 
 function NewObject(objectData,author,privkey){
 	let newObject = new CommonObject({
-		signature: crypto.SignString(JSON.stringify(objectData),privkey),
+		signature: sigHandler.SignString(JSON.stringify(objectData),privkey),
 		author: author,
 		data: objectData
 	});
