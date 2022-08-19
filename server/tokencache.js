@@ -1,6 +1,6 @@
-module.exports = {NewToken};
+module.exports = {NewToken,CheckToken};
 
-const TIMEOUT = 10;
+const TIMEOUT = 1200;
 let tokens = {};
 
 function intervalFunc(){
@@ -10,11 +10,20 @@ function intervalFunc(){
             delete tokens[key];
         }
     }
-    console.log(tokens);
 }
 
 function NewToken(user,token){
     tokens[user] = {token: token,time: TIMEOUT}
+}
+
+function CheckToken(user,token){
+    return new Promise(function (resolve,reject){
+        if(tokens[user].token === token){
+            resolve()
+        }else{
+            reject()
+        }
+    })
 }
 
 setInterval(intervalFunc,1000);

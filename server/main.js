@@ -35,8 +35,10 @@ app.post('/ValidateRequest',async function(req,res){
 );
 
 app.post('/NewObjectRequest',function(req,res){
-	db.NewObject(req.body.data,req.body.author,req.body.key);
-	res.status(200).json({message:'Test'});
+	authenticateRequest(req.body.author,req.body.token,res,function(){
+		db.NewObject(req.body.data,req.body.author,req.body.key);
+		res.status(200).json({message:'Test'});
+	})
 }
 );
 
@@ -49,5 +51,9 @@ app.get('/GetObjectByIdRequest/:id',function(req,res){
 	res.status(200).json({message:'Test '+req.params.id});
 }
 );
+
+function authenticateRequest(user,token,res,authenticatedFunction){
+	tokens.CheckToken(user,token).then(authenticatedFunction,function(){console.log("rejected"); res.status(401).end();});
+}
 
 app.listen(8080);
