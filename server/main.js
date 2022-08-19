@@ -1,10 +1,12 @@
 const express = require('express');
 const fs = require('fs');
+const crypto = require('crypto');
 
 const app = express();
 app.use(express.json());
 
 const db = require('./dbhandler.js');
+const tokens = require('./tokencache.js')
 
 app.post('/NewUserRequest',function(req,res)
 {
@@ -14,8 +16,12 @@ app.post('/NewUserRequest',function(req,res)
 );
 
 app.put('/LoginRequest',function(req,res){
-	db.AuthenticateUser(req.body.username,req.body.password);
-	res.status(200).end();
+	const token = crypto.randomBytes(16).toString('hex');
+	tokens.NewToken(req.body.username,token);
+	db.AuthenticateUser(req.body.username,req.body.password).then(
+		function fulfil(){res.status(200).json({token: token});},
+		function reject(){res.status(403).end();}
+	);
 });
 
 app.post('/ValidateRequest',async function(req,res){

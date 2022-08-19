@@ -43,18 +43,25 @@ function NewUser(user,password){
 }
 
 function AuthenticateUser(user,password){
-	User.findOne({username: user},function (err,doc){
-		if(err){
-			console.log(err);
-		}else{
-			if(!doc){
-				console.log('User not found');
+	return new Promise((resolve,reject) => 
+	{
+		User.findOne({username: user},function (err,doc){
+			if(err){
+				reject(err);
 			}else{
-				const userAttempt = crypto.pbkdf2Sync(password,doc.password.salt,doc.password.iterations,64,'sha512').toString('hex');
-				console.log(userAttempt === doc.password.password);
+				if(!doc){
+					reject('User not found')
+				}else{
+					const userAttempt = crypto.pbkdf2Sync(password,doc.password.salt,doc.password.iterations,64,'sha512').toString('hex');
+					if(userAttempt === doc.password.password){
+						resolve();
+					}else{
+						reject('Password rejected');
+					}
+				}
 			}
-		}
-	});
+		});
+	})
 }
 
 function AssignKey(user,key,name){
