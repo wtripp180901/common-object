@@ -1,4 +1,4 @@
-module.exports= {NewObject,AssignKey,Validate,NewUser,AuthenticateUser};
+module.exports= {NewObject,AssignKey,Validate,NewUser,AuthenticateUser,NewSignedObject};
 
 const mongoose = require('mongoose');
 mongoose.connect('mongodb://localhost:27017/common_object');
@@ -127,12 +127,32 @@ function Validate(objectData){
 }
 
 function NewObject(objectData,author,privkey){
-	let newObject = new CommonObject({
-		signature: sigHandler.SignString(JSON.stringify(objectData),privkey),
+	makeNewObject(
+		sigHandler.SignString(JSON.stringify(objectData),privkey),
+		author,
+		objectData);
+}
+
+function NewSignedObject(signature,data,author){
+	let result = Validate({
 		author: author,
-		data: objectData
+		signature: signature,
+		data: data
+	})
+	if(result){
+		makeNewObject(signature,author,data);
+	}else{
+		console.log('Invalid signature');
+	}
+}
+
+function makeNewObject(signature,author,data){
+	let newObject = new CommonObject({
+		signature: signature,
+		author: author,
+		data: data
 	});
 	newObject.save().then(function(){
-		console.log(newObject.signature);
+		console.log('New object created');
 	});
 }
