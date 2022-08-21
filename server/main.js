@@ -55,7 +55,8 @@ app.post('/RegisterPublicKey/:user',function(req,res){
 });
 
 app.get('/GetObjectByIdRequest/:id',function(req,res){
-	res.status(200).json({message:'Test '+req.params.id});
+	db.GetObjectById(req.params.id);
+	res.status(200).end();
 }
 );
 

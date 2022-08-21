@@ -1,4 +1,4 @@
-module.exports= {NewObject,AssignKey,Validate,NewUser,AuthenticateUser,NewSignedObject};
+module.exports= {NewObject,AssignKey,Validate,NewUser,AuthenticateUser,NewSignedObject,GetObjectById};
 
 const mongoose = require('mongoose');
 mongoose.connect('mongodb://localhost:27017/common_object');
@@ -143,6 +143,25 @@ function NewSignedObject(signature,data,author){
 		makeNewObject(signature,author,data);
 	}else{
 		console.log('Invalid signature');
+	}
+}
+
+function GetObjectById(id){
+	CommonObject.findById(id,function(err,doc){
+		if(err){
+			console.log(err);
+		}else{
+			console.log(objectParser(doc));
+		}
+	})
+}
+
+function objectParser(rawObject){
+	return {
+		id: rawObject._id.toString(),
+		author: rawObject.author,
+		signature: rawObject.signature,
+		data: rawObject.data
 	}
 }
 
