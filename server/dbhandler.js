@@ -11,6 +11,9 @@ const db = mongoose.connection;
 const objectSchema = new mongoose.Schema({
 	author: String,
 	signature: String,
+	owner: String,
+	createdAt: {type: Date, default: Date.now},
+	lastModified: {type: Date, default: Date.now},
 	data: Object
 });
 /*const pubKeySchema = new mongoose.Schema({
@@ -169,6 +172,7 @@ function makeNewObject(signature,author,data){
 	let newObject = new CommonObject({
 		signature: signature,
 		author: author,
+		owner: author,
 		data: data
 	});
 	newObject.save().then(function(){
