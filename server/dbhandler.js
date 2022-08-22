@@ -12,14 +12,11 @@ const objectSchema = new mongoose.Schema({
 	author: String,
 	signature: String,
 	owner: String,
-	createdAt: {type: Date, default: Date.now},
-	lastModified: {type: Date, default: Date.now},
+	createdAt: String,
+	lastModified: String,
 	data: Object
 });
-/*const pubKeySchema = new mongoose.Schema({
-	key: String,
-	priority: Number
-})*/
+
 const userSchema = new mongoose.Schema({
 	username: String,
 	password: Object,
@@ -104,7 +101,7 @@ function Validate(objectData){
 					let keyObjects = doc.keys;
 					keyObjects.sort((a,b) => {return b.priority - a.priority;})
 					keyObjects.every((currentKey) => {
-						let result = sigHandler.VerifyString(objectData.data,objectData.signature,currentKey.key);
+						let result = sigHandler.VerifyString(toPlainText(objectData),objectData.signature,currentKey.key);
 						if(result){ 
 							console.log("Matching key found")
 							resolve(result);
@@ -129,25 +126,28 @@ function Validate(objectData){
 	});
 }
 
-function NewObject(objectData,author,privkey){
-	makeNewObject(
-		sigHandler.SignString(JSON.stringify(objectData),privkey),
-		author,
-		objectData);
+function NewObject(data,author,privkey){
+	let newObject = unsignedDefaultObject(author,data);
+	newObject.signature = sigHandler.SignString(toPlainText(newObject),privkey);
+	newObject.save().then(function(){
+		console.log('New object created');
+	});
 }
 
+/*
 function NewSignedObject(signature,data,author){
-	let result = Validate({
-		author: author,
-		signature: signature,
-		data: data
-	})
+	let newObject = unsignedDefaultObject(author,data);
+	newObject.signature = signature;
+	let result = Validate(newObject);
 	if(result){
-		makeNewObject(signature,author,data);
+		newObject.save().then(function(){
+			console.log('New object created');
+		});
 	}else{
 		console.log('Invalid signature');
 	}
 }
+*/
 
 function GetObjectById(id){
 	CommonObject.findById(id,function(err,doc){
@@ -164,18 +164,23 @@ function objectParser(rawObject){
 		id: rawObject._id.toString(),
 		author: rawObject.author,
 		signature: rawObject.signature,
+		createdAt: rawObject.createdAt,
+		lastModified: raw.lastModified,
 		data: rawObject.data
 	}
 }
 
-function makeNewObject(signature,author,data){
-	let newObject = new CommonObject({
-		signature: signature,
+function unsignedDefaultObject(author,data){
+	let currentDate = new Date().toUTCString();
+	return new CommonObject({
 		author: author,
 		owner: author,
-		data: data
-	});
-	newObject.save().then(function(){
-		console.log('New object created');
-	});
+		data: data,
+		createdAt: currentDate,
+		lastModified: currentDate
+	})
+}
+
+function toPlainText(objectData){
+	return JSON.stringify(objectData.data)+objectData.owner+objectData.createdAt+objectData.lastModified;
 }
