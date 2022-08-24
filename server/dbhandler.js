@@ -1,4 +1,4 @@
-module.exports= {NewObject,AssignKey,Validate,NewUser,AuthenticateUser,NewSignedObject,GetObjectById};
+module.exports= {NewObject,AssignKey,Validate,NewUser,AuthenticateUser,GetObjectById,UpdateOwner};
 
 const mongoose = require('mongoose');
 mongoose.connect('mongodb://localhost:27017/common_object');
@@ -134,6 +134,10 @@ function NewObject(data,author,privkey){
 	});
 }
 
+function UpdateOwner(id,newOwner){
+	console.log('triggered')
+}
+
 /*
 function NewSignedObject(signature,data,author){
 	let newObject = unsignedDefaultObject(author,data);
@@ -150,22 +154,30 @@ function NewSignedObject(signature,data,author){
 */
 
 function GetObjectById(id){
-	CommonObject.findById(id,function(err,doc){
-		if(err){
-			console.log(err);
-		}else{
-			console.log(objectParser(doc));
-		}
+	return new Promise(function(resolve,reject){
+		CommonObject.findById(id,function(err,doc){
+			if(err){
+				reject(err.toString());
+			}else{
+				if(doc){
+					resolve(objectParser(doc));
+				}else{
+					reject('Object not found')
+				}
+			}
+		})
 	})
+	
 }
 
 function objectParser(rawObject){
 	return {
 		id: rawObject._id.toString(),
 		author: rawObject.author,
+		owner: rawObject.owner,
 		signature: rawObject.signature,
 		createdAt: rawObject.createdAt,
-		lastModified: raw.lastModified,
+		lastModified: rawObject.lastModified,
 		data: rawObject.data
 	}
 }

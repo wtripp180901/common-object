@@ -15,7 +15,7 @@ app.post('/NewUserRequest',function(req,res)
 }
 );
 
-app.put('/LoginRequest',function(req,res){
+app.patch('/LoginRequest',function(req,res){
 	const token = crypto.randomBytes(16).toString('hex');
 	tokens.NewToken(req.body.username,token);
 	db.AuthenticateUser(req.body.username,req.body.password).then(
@@ -56,11 +56,28 @@ app.post('/RegisterPublicKey/:user',function(req,res){
 	res.status(200).end();
 });
 
+//Have flag in objcts for public or private and authenticate this
 app.get('/GetObjectByIdRequest/:id',function(req,res){
-	db.GetObjectById(req.params.id);
-	res.status(200).end();
+	db.GetObjectById(req.params.id).then(function(value){
+		res.status(200).json(value);
+	},function(){
+		res.status(500).end(err);
+	})
 }
 );
+
+app.patch('/SetOwnerRequest/:id',function(req,res){
+	db.GetObjectById(req.params.id).then(
+		function(value){
+			authenticateRequest(value.owner,req.headers.token,res,function(){
+				db.UpdateOwner(req.params.id,req.body.newOwner);
+				res.status(200).end()
+			});
+		},
+		(err) => res.status(400).end()
+	);
+	
+});
 
 function authenticateRequest(user,token,res,authenticatedFunction){
 	tokens.CheckToken(user,token).then(authenticatedFunction,function(){console.log("rejected"); res.status(401).end();});
