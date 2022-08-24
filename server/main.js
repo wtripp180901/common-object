@@ -66,17 +66,18 @@ app.get('/GetObjectByIdRequest/:id',function(req,res){
 }
 );
 
-app.patch('/SetOwnerRequest/:id',function(req,res){
-	db.GetObjectById(req.params.id).then(
-		function(value){
-			authenticateRequest(value.owner,req.headers.token,res,function(){
-				db.UpdateOwner(req.params.id,req.body.newOwner);
-				res.status(200).end()
-			});
-		},
-		(err) => res.status(400).end()
-	);
-	
+app.patch('/SetOwnerRequest/:currentOwner/:id',function(req,res){
+	authenticateRequest(req.params.currentOwner,req.headers.token,res,function(){
+		db.UpdateOwner(req.params.currentOwner,req.body.newOwner,req.params.id).then(
+			function(){
+				res.status(200).end();
+			},
+			function(err){
+				console.log(err);
+				res.status(400).end();
+			}
+		)
+	})
 });
 
 function authenticateRequest(user,token,res,authenticatedFunction){

@@ -134,8 +134,35 @@ function NewObject(data,author,privkey){
 	});
 }
 
-function UpdateOwner(id,newOwner){
-	console.log('triggered')
+function UpdateOwner(currentOwner,newOwner,id){
+	return new Promise((resolve,reject) => {
+		User.findOne({username: newOwner}, function(err,doc){
+			if(err){
+				reject(err);
+			}else{
+				if(doc){
+					CommonObject.findOneAndUpdate(
+						{_id: id,owner: currentOwner},
+						{ $set: {owner: newOwner,lastModified: new Date().toUTCString()}},
+						function(err,doc){
+							if(err){
+								reject(err)
+							}else{
+								if(doc){
+									resolve();
+								}else{
+									reject('Object not found');
+								}
+							}
+						}
+						)
+				}else{
+					reject('New owner not found');
+				}
+			}
+		})
+	}
+	)
 }
 
 /*
