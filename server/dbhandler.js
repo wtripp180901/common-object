@@ -14,6 +14,8 @@ const objectSchema = new mongoose.Schema({
 	owner: String,
 	createdAt: String,
 	lastModified: String,
+	trustedDate: Boolean,
+	public: Boolean,
 	data: Object
 });
 
@@ -240,7 +242,9 @@ function objectParser(rawObject){
 		signature: rawObject.signature,
 		createdAt: rawObject.createdAt,
 		lastModified: rawObject.lastModified,
-		data: rawObject.data
+		data: rawObject.data,
+		trustedDate: rawObject.trustedDate,
+		public: rawObject.public
 	}
 }
 

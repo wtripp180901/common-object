@@ -56,10 +56,16 @@ app.post('/RegisterPublicKey/:user',function(req,res){
 	res.status(200).end();
 });
 
-//Have flag in objcts for public or private and authenticate this
 app.get('/GetObjectByIdRequest/:id',function(req,res){
 	db.GetObjectById(req.params.id).then(function(value){
-		res.status(200).json(value);
+		if(value.public){
+			res.status(200).json(value);
+		}else{
+			authenticateRequest(value.owner,req.headers.token,res,function(){
+				res.status(200).json(value);
+			})
+		}
+		
 	},function(){
 		res.status(500).end(err);
 	})
