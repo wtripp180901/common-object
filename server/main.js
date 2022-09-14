@@ -80,6 +80,15 @@ app.patch('/SetOwnerRequest/:currentOwner/:id',function(req,res){
 	})
 });
 
+app.get('/GetObjects/:user',function(req,res){
+	authenticateRequest(req.params.user,req.headers.token,res,function(){
+		db.GetObjects(req.params.user,req.query.objectCount,req.query.mode).then(
+			function fulfill(val){res.status(200).json(val);},
+			function reject() {res.status(400).end();}
+		)
+	})
+});
+
 function authenticateRequest(user,token,res,authenticatedFunction){
 	tokens.CheckToken(user,token).then(authenticatedFunction,function(){console.log("rejected"); res.status(401).end();});
 }

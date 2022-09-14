@@ -1,4 +1,4 @@
-module.exports= {NewObject,AssignKey,Validate,NewUser,AuthenticateUser,GetObjectById,UpdateOwner};
+module.exports= {NewObject,AssignKey,Validate,NewUser,AuthenticateUser,GetObjectById,UpdateOwner,GetObjects};
 
 const mongoose = require('mongoose');
 mongoose.connect('mongodb://localhost:27017/common_object');
@@ -87,6 +87,41 @@ function AssignKey(user,key,name){
 			}
 		}
 	});
+}
+
+function GetObjects(user,count,mode){
+	
+	return new Promise(function(resolve,reject){
+		let criteria;
+		switch(mode){
+			case "all":
+				criteria = {$or: [{owner: user},{author: user}]};
+				break;
+			case "created":
+				criteria = {author: user};
+				break;
+			case "owned":
+				criteria = {owner:user};
+				break;
+		}
+		CommonObject.find(criteria,function(err,doc){
+			if(err){
+				console.log(err);
+				reject(err.toString());
+			}else{
+				if(doc){
+					let parsedList = doc.map(x => objectParser(x));
+					if(count != null){
+						parsedList.sort(sortStringDates)
+						parsedList = parsedList.slice(0,count);
+					}
+					resolve(parsedList);
+				}else{
+					reject('Object not found')
+				}
+			}
+		})
+	})
 }
 
 function Validate(objectData){
@@ -222,4 +257,8 @@ function unsignedDefaultObject(author,data){
 
 function toPlainText(objectData){
 	return JSON.stringify(objectData.data)+objectData.owner+objectData.createdAt+objectData.lastModified;
+}
+
+function sortStringDates(a,b){
+	return -1;
 }
