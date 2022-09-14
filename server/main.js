@@ -42,14 +42,17 @@ app.post('/NewObjectRequest',function(req,res){
 }
 );
 
-/* Not compatible with new date system
 app.post('/NewSignedObjectRequest',function(req,res){
 	authenticateRequest(req.body.author,req.headers.token,res,function(){
-		db.NewSignedObject(req.body.signature,req.body.data,req.body.author);
-		res.status(200).end();
+		if(req.body.trustedDate){
+			res.status(403).end("Presigned objects can't have trusted dates");
+		}else{
+			db.NewSignedObject(req.body);
+			res.status(200).end();
+		}
 	})
 });
-*/
+
 
 app.post('/RegisterPublicKey/:user',function(req,res){
 	db.AssignKey(req.params.user,req.body.key,req.body.keyName);

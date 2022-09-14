@@ -1,4 +1,4 @@
-module.exports= {NewObject,AssignKey,Validate,NewUser,AuthenticateUser,GetObjectById,UpdateOwner,GetObjects};
+module.exports= {NewObject,AssignKey,Validate,NewUser,AuthenticateUser,GetObjectById,UpdateOwner,GetObjects,NewSignedObject};
 
 const mongoose = require('mongoose');
 mongoose.connect('mongodb://localhost:27017/common_object');
@@ -202,10 +202,11 @@ function UpdateOwner(currentOwner,newOwner,id){
 	)
 }
 
-/*
-function NewSignedObject(signature,data,author){
-	let newObject = unsignedDefaultObject(author,data);
-	newObject.signature = signature;
+
+function NewSignedObject(objectData){
+	let newObject = new CommonObject(
+		objectData
+	);
 	let result = Validate(newObject);
 	if(result){
 		newObject.save().then(function(){
@@ -215,7 +216,7 @@ function NewSignedObject(signature,data,author){
 		console.log('Invalid signature');
 	}
 }
-*/
+
 
 function GetObjectById(id){
 	return new Promise(function(resolve,reject){
