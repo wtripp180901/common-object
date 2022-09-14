@@ -163,8 +163,8 @@ function Validate(objectData){
 	});
 }
 
-function NewObject(data,author,privkey){
-	let newObject = unsignedDefaultObject(author,data);
+function NewObject(data,author,privkey,public){
+	let newObject = unsignedDefaultObject(author,data,public);
 	newObject.signature = sigHandler.SignString(toPlainText(newObject),privkey);
 	newObject.save().then(function(){
 		console.log('New object created');
@@ -248,19 +248,21 @@ function objectParser(rawObject){
 	}
 }
 
-function unsignedDefaultObject(author,data){
+function unsignedDefaultObject(author,data,public){
 	let currentDate = new Date().toUTCString();
 	return new CommonObject({
 		author: author,
 		owner: author,
 		data: data,
 		createdAt: currentDate,
-		lastModified: currentDate
+		lastModified: currentDate,
+		trustedDate: true,
+		public: public
 	})
 }
 
 function toPlainText(objectData){
-	return JSON.stringify(objectData.data)+objectData.owner+objectData.createdAt+objectData.lastModified;
+	return JSON.stringify(objectData.data)+objectData.owner+objectData.createdAt+objectData.lastModified+objectData.trustedDate.toString()+objectData.public.toString();
 }
 
 function sortStringDates(a,b){

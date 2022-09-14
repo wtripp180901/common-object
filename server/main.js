@@ -36,7 +36,7 @@ app.post('/ValidateRequest',async function(req,res){
 
 app.post('/NewObjectRequest',function(req,res){
 	authenticateRequest(req.body.author,req.headers.token,res,function(){
-		db.NewObject(req.body.data,req.body.author,req.body.key);
+		db.NewObject(req.body.data,req.body.author,req.body.key,req.body.public);
 		res.status(200).json({message:'Test'});
 	})
 }
