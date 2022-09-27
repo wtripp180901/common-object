@@ -207,14 +207,25 @@ function NewSignedObject(objectData){
 	let newObject = new CommonObject(
 		objectData
 	);
-	let result = Validate(newObject);
-	if(result){
-		newObject.save().then(function(){
-			console.log('New object created');
-		});
-	}else{
-		console.log('Invalid signature');
-	}
+	User.find({username: objectData.owner},function(err,doc){
+		if(err){
+			console.log(err);
+		}else{
+			if(doc){
+				let result = Validate(newObject);
+				if(result){
+					newObject.save().then(function(){
+						console.log('New object created');
+					});
+				}else{
+					console.log('Invalid signature');
+				}
+			}else{
+				console.log("Owner does not exist");
+			}
+		}
+	});
+	
 }
 
 

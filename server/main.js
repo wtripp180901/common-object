@@ -42,6 +42,7 @@ app.post('/NewObjectRequest',function(req,res){
 }
 );
 
+//Ensure that owner is real as well
 app.post('/NewSignedObjectRequest',function(req,res){
 	authenticateRequest(req.body.author,req.headers.token,res,function(){
 		if(req.body.trustedDate){
